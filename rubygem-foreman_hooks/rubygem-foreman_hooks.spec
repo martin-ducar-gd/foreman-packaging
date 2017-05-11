@@ -17,11 +17,12 @@
 Summary:    Run custom hook scripts on Foreman events
 Name:       %{?scl_prefix}rubygem-%{gem_name}
 Version:    0.3.13
-Release:    1%{?foremandist}%{?dist}
+Release:    1.gdc%{?foremandist}%{?dist}
 Group:      Applications/System
 License:    GPLv3
 URL:        http://github.com/theforeman/foreman_hooks
 Source0:    http://rubygems.org/downloads/%{gem_name}-%{version}.gem
+Patch0:    0001-FEATURE-PAAS-9545-patch-host-hooks-to-provide-params.patch
 
 Requires:   foreman >= 1.4.0
 
@@ -58,6 +59,9 @@ mkdir -p .%{gem_dir}
 %{?scl:scl enable %{scl} - <<EOF}
 %gem_install -n %{SOURCE0}
 %{?scl:EOF}
+pushd .%{gem_instdir}
+%patch0 -p0
+popd
 
 %build
 
@@ -97,6 +101,9 @@ ln -s %{gem_instdir} %{buildroot}%{foreman_dir}/%{gem_name}
 %{gem_instdir}/Rakefile
 
 %changelog
+* Thu May 11 2017 Martin Ducar <martin.ducar@gooddata.com> 0.3.13-1.gdc
+- GoodData patch for host parameters in hooks
+
 * Mon Mar 06 2017 Dominic Cleal <dominic@cleal.org> 0.3.13-1
 - Update foreman_hooks to 0.3.13 (dominic@cleal.org)
 

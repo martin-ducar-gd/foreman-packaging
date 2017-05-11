@@ -1,0 +1,33 @@
+From 6db1d74115b27d3f238b27fcad07e114ac6ddcc5 Mon Sep 17 00:00:00 2001
+From: Martin Ducar <martin.ducar@gooddata.com>
+Date: Wed, 10 May 2017 09:31:28 +0200
+Subject: [PATCH] FEATURE: PAAS-9545 patch host hooks to provide params
+
+---
+ lib/foreman_hooks/util.rb | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/lib/foreman_hooks/util.rb b/lib/foreman_hooks/util.rb
+index eec8af9..16d78ab 100644
+--- a/lib/foreman_hooks/util.rb
++++ b/lib/foreman_hooks/util.rb
+@@ -19,8 +19,14 @@ module ForemanHooks::Util
+   def render_hook_json
+     # APIv2 has some pretty good templates.  We could extend them later in special cases.
+     # Wrap them in a root node for pre-1.4 compatibility
+-    view_path = ActionController::Base.view_paths.collect(&:to_path)
+-    json = Rabl.render(self, "api/v2/#{render_hook_type.tableize}/show", :view_path => view_path, :format => :json)
++    if render_hook_type == 'host'
++      hash = JSON.load(self.to_json)
++      hash["parameters"] = self.host_parameters.collect {|p| { :id => p.id, :name => p.name, :value => p.value } }
++      json = hash.to_json
++    else
++      view_path = ActionController::Base.view_paths.collect(&:to_path)
++      json = Rabl.render(self, "api/v2/#{render_hook_type.tableize}/show", :view_path => view_path, :format => :json)
++    end
+     %Q|{"#{render_hook_type}":#{json}}|
+   rescue => e
+     logger.warn "Unable to render #{self} (#{self.class}) using RABL: #{e.message}"
+-- 
+2.9.3
+
